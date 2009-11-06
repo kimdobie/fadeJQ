@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // jquery.fadeJQ.js
-// version 1.0
+// version 1.0.1
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -80,16 +80,16 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 	/////////////////////////////////////
 	getBackground=function(){
 		
-		var bg=checkForCSS3($(element).css('background-color'));	
+		var bg=checkForCSS3(jQuery(element).css('background-color'));	
 		
 		// Check to see if the element itself has a background color
 	
 		// The element itself doesn't have a background color - check each of it's parents
 		if(bg==""){
-			var parents=$(element).parents();
+			var parents=jQuery(element).parents();
 			parents.each(function(){
 				if(bg==""){
-					bg=checkForCSS3($(this).css('background-color'));	
+					bg=checkForCSS3(jQuery(this).css('background-color'));	
 				}
 			
 			});
@@ -194,7 +194,7 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			var g=Math.round(startg+(endg-startg)/fadeSteps*step);
 			var b=Math.round(startb+(endb-startb)/fadeSteps*step);
 			
-			$(element).css('background-color',"rgb("+r+","+g+","+b+")");
+			jQuery(element).css('background-color',"rgb("+r+","+g+","+b+")");
 			step++;
 			
 			
@@ -207,7 +207,7 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 		}
 		// This is the last time this method is called - set the background color to the final color
 		else{
-			$(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
+			jQuery(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
 		}
 			
 		
