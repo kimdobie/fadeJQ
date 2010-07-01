@@ -163,7 +163,7 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 	/////////////////////////////////////
 	fadeJQMain=function(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb,timestamp){
 		
-		
+		if(timestamp==undefined||timestamp=="") timestamp=new Date().getTime();
 		
 		// Let's check to see if another fadeJQ has been called on this element
 		//fadeDataAttribute="data-fadeJQ";
@@ -191,7 +191,6 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			step=0;
 			startcolor=setColor(startcolor);
 			endcolor=setColor(endcolor)
-			var timestamp=new Date().getTime();
 			var newTimeStamp="";
 			if(jQuery(element).attr(fadeDataAttribute)!=undefined)newTimeStamp=jQuery(element).attr(fadeDataAttribute);
 			
