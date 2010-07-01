@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // jquery.fadeJQ.js
-// version 1.0.1
+// version 1.0.2
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -18,7 +18,12 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 	var defaultStartColor="ffff99"; //default starting color if one is not provided
 	var defaultEndColor="ffffff"; //default ending color if one is not provided and do_FadeuseExistingAsEnd is false;
 	
+	var fadeDataAttribute="data-fadeJQ";
+	
 	var element=this; // just to keep track of the DOM object we want to fade
+	
+	
+	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -145,12 +150,29 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 		
 	};
 	
+	
+	
+	
+	
+	
+	
 	/////////////////////////////////////
 	//Main method - this does the actual fading of the background.
 	//
 	//Called fadeSteps times through recursion
 	/////////////////////////////////////
-	fadeJQMain=function(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb){
+	fadeJQMain=function(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb,timestamp){
+		
+		
+		
+		// Let's check to see if another fadeJQ has been called on this element
+		//fadeDataAttribute="data-fadeJQ";
+		
+		
+		
+		
+		
+		
 		
 		//No start color provided - use default
 		//Note: the start color is set on the first pass of this method.
@@ -169,6 +191,11 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			step=0;
 			startcolor=setColor(startcolor);
 			endcolor=setColor(endcolor)
+			var timestamp=new Date().getTime();
+			var newTimeStamp="";
+			if(jQuery(element).attr(fadeDataAttribute)!=undefined)newTimeStamp=jQuery(element).attr(fadeDataAttribute);
+			
+			jQuery(element).attr(fadeDataAttribute,newTimeStamp+""+timestamp+",");
 		}
 		
 		
@@ -198,16 +225,24 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			step++;
 			
 			
+			
+			
+			
 			//Recall this method in the given time interval
 			setTimeout(function(){
-			 fadeJQMain(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb);
+			 fadeJQMain(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb,timestamp);
 			
 			},fadeInterval);
 		
 		}
 		// This is the last time this method is called - set the background color to the final color
 		else{
+			
 			jQuery(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
+		
+			// remove this timestamp from data
+			var newAttrVal= jQuery(element).attr(fadeDataAttribute).replace(timestamp+',','');
+			jQuery(element).attr(fadeDataAttribute,newAttrVal);
 		}
 			
 		
