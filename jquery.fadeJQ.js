@@ -151,9 +151,20 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 	};
 	
 	
+	/////////////////////////////////////
+	//To set final state
+	//
+	/////////////////////////////////////
 	
-	
-	
+	finalState=function(element,endr,endg,endb,timestamp){
+			jQuery(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
+		
+			// remove this timestamp from data
+			var newAttrVal= jQuery(element).attr(fadeDataAttribute).replace(timestamp+',','');
+			jQuery(element).attr(fadeDataAttribute,newAttrVal);
+		
+		
+	};
 	
 	
 	/////////////////////////////////////
@@ -161,14 +172,54 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 	//
 	//Called fadeSteps times through recursion
 	/////////////////////////////////////
-	fadeJQMain=function(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb,timestamp){
+	fadeJQMain=function(paramObj){
 		
-		if(timestamp==undefined||timestamp=="") timestamp=new Date().getTime();
+		var element, startcolor, endcolor, step, startr, startg, startb, endr, endg, endb, timestamp;
 		
-		// Let's check to see if another fadeJQ has been called on this element
-		//fadeDataAttribute="data-fadeJQ";
+		if(paramObj.element!=undefined)element=paramObj.element;
+		if(paramObj.startcolor!=undefined)startcolor=paramObj.startcolor;
+		if(paramObj.endcolor!=undefined)endcolor=paramObj.endcolor;
+		if(paramObj.step!=undefined)step=paramObj.step;
+		if(paramObj.startr!=undefined)startr=paramObj.startr;
+		if(paramObj.startg!=undefined)startg=paramObj.startg;
+		if(paramObj.startb!=undefined)startb=paramObj.startb;
+		if(paramObj.endr!=undefined)endr=paramObj.endr;
+		if(paramObj.endg!=undefined)endg=paramObj.endg;
+		if(paramObj.endb!=undefined)endb=paramObj.endb;
+		if(paramObj.timestamp!=undefined)timestamp=paramObj.timestamp;
 		
 		
+		//alert(startcolor+" | "+ endcolor+" | "+ step+" | "+ startr+" | "+ startg+" | "+ startb+" | "+ endr+" | "+ endg+" | "+ endb);
+		
+		if(timestamp==undefined||timestamp==""){
+			// there is no timestamp - set one
+			timestamp=new Date().getTime();
+			var newAttrVal= timestamp+',';
+			if(jQuery(element).attr(fadeDataAttribute)!=undefined) newAttrVal+=jQuery(element).attr(fadeDataAttribute);
+			jQuery(element).attr(fadeDataAttribute,newAttrVal);
+		}
+		
+		
+		
+		var timestampArray=jQuery(element).attr(fadeDataAttribute).split(',');
+		timestampArray.pop();
+
+		for(var i=0;i<timestampArray.length;i++){
+			if(timestamp<timestampArray[i]){
+				// There is a newer timestamp - Let's kill this fade:
+				finalState(element,endr,endg,endb,timestamp);
+				return;
+			}
+			
+			
+			if(timestamp>timestampArray[i]){
+				// There is an older timestamp -Just recall this function again
+				 setTimeout(function(){
+					fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor, "timestamp":timestamp});
+					},fadeInterval);
+				return;
+			}
+		}
 		
 		
 		
@@ -185,16 +236,12 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			else endcolor=defaultEndColor;
 		}
 		
-	
+		
 		// This is the first pass - ensure that the start and end colors are in the proper hex format
 		if(step==""||step==undefined){
 			step=0;
 			startcolor=setColor(startcolor);
 			endcolor=setColor(endcolor)
-			var newTimeStamp="";
-			if(jQuery(element).attr(fadeDataAttribute)!=undefined)newTimeStamp=jQuery(element).attr(fadeDataAttribute);
-			
-			jQuery(element).attr(fadeDataAttribute,newTimeStamp+""+timestamp+",");
 		}
 		
 		
@@ -213,7 +260,7 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			endg=endnums[1];
 			endb=endnums[2];
 		}
-	
+		
 		//Calculate the next rgb values assuming this isn't the last step
 		if(step<fadeSteps){
 			var r=Math.round(startr+(endr-startr)/fadeSteps*step);
@@ -224,34 +271,23 @@ jQuery.fn.fadeJQ = function(startcolor,endcolor) {
 			step++;
 			
 			
-			
-			
-			
 			//Recall this method in the given time interval
 			setTimeout(function(){
-			 fadeJQMain(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb,timestamp);
+			//fadeJQMain(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb);
+			fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor, "step":step, "startr":startr, "startg":startg, "startb":startb, "endr":endr, "endg":endg, "endb":endb, "timestamp":timestamp});
 			
 			},fadeInterval);
 		
 		}
 		// This is the last time this method is called - set the background color to the final color
 		else{
-			
-			jQuery(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
-		
-			// remove this timestamp from data
-			var newAttrVal= jQuery(element).attr(fadeDataAttribute).replace(timestamp+',','');
-			jQuery(element).attr(fadeDataAttribute,newAttrVal);
+			finalState(element,endr,endg,endb,timestamp);
 		}
-			
-		
-		
+	
 	};
 		
-		
 	
-	
-	fadeJQMain(element,startcolor,endcolor); // Call the main method 
+	fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor});
 	
     return this; //return the DOM object so this plug-in can be daisy chained.
 };
