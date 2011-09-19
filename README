@@ -5,8 +5,8 @@
 /////////////////////////////////// INFO ////////////////////////////////////////////////////
 //This jQuery plug-in was created by Kim Doberstein (kimdobie@gmail.com)
 //
-// Version 1.0.2
-// Date: 07/02/2010
+// Version 2.0.0
+// Date: 09/18/2011
 //
 // Provide a fading background for an object
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 //////////////////////////////////// NOTE ////////////////////////////////////////////////////////
 //This is a plug-in to the jQuery framework. See http://jquery.com/ for more information and to download the latest version of jQuery.
 
-//This plug-in was developed on jQuery version 1.3.2
+//This plug-in was developed on jQuery version 1.6.2
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////// HOW TO USE ////////////////////////////////////////////////////
@@ -26,14 +26,8 @@
 
 ///////////////////////////////////// OPTIONAL PARAMS ///////////////////////////////////////////////
 
-// An optional start color and end color may be provided
-// 			$('#myDiv').fadeJQ('ffff00','00ffff');
 
-// Where ffff00 is the start color and 00ffff is the end color
-// If no start color or end color is provided, the defaults are used (yellow to white)
-
-
-/// If you want to change the background is actually faded, you can set any of the following
+/// If you want to change how the background is actually faded, you can set any of the following
 
 // startcolor: The starting color in hex
 // endcolor: The ending color in hex
@@ -51,8 +45,6 @@ None
 
 
 ///////////////////////////////////// FUTURE DEVELOPMENT ///////////////////////////////////////////////
-Code clean up.
-
 Adding transparency as an option for fading.
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

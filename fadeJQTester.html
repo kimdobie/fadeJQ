@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <title>Untitled Document</title>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
 <script type="text/javascript" src="jquery.fadeJQ.js"></script>
 <!--<script type="text/javascript" src="jquery.fadeJQ_min.js"></script>-->
 
@@ -23,9 +23,12 @@ function customFade(){
 	var startColor=$('#startColor').val();
 	var endColor=$('#endColor').val();
 	
+	var colors=new Object();
+	if(startColor!="")colors.startcolor=startColor;
+	if(endColor!="")colors.endcolor=endColor;
 	// Fade the sample text below
 	// Note - a user can enter any valid hex color code.  The leading "#" is optional.
-	$('#sampleText').fadeJQ(startColor,endColor);
+	$('#sampleText').fadeJQ(colors);
 }
 
 

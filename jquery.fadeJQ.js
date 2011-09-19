@@ -1,294 +1,228 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// jquery.fadeJQ.js
-// version 1.0.2
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+//  version 2.0.0
 
 
-
-
-
-jQuery.fn.fadeJQ = function(startcolor,endcolor) {
-	
-	
-	//////////////////////////////////// VARS ////////////////////////////////////////////////////////
-	var fadeInterval=400;// The time in miliseconds between color steps
-	var fadeSteps=7;// The number of different shades during fade
-	var useExistingAsEnd=true; // Use the existing background color as the end color if a background color is not provided
-	var defaultStartColor="ffff99"; //default starting color if one is not provided
-	var defaultEndColor="ffffff"; //default ending color if one is not provided and do_FadeuseExistingAsEnd is false;
-	
-	var fadeDataAttribute="data-fadeJQ";
-	
-	var element=this; // just to keep track of the DOM object we want to fade
-	
-	
-	
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	
-	if(typeof startcolor=="object"){
-		paramObj=startcolor;
-		startcolor=paramObj.startcolor;
+(function( $ ){
 		
-		if(paramObj.endcolor!=undefined)endcolor=paramObj.endcolor;
-		if(paramObj.steps!=undefined)fadeSteps=paramObj.steps;
-		if(paramObj.interval!=undefined)fadeInterval=paramObj.interval;
-		
-		
-	}
-	
-	
-	
-	
-	////////////////////////////////////////////
-	// Helper method to convert a hex color (example #ffcc00) to an array of rgb values
-	//
-	// JS Hex/Number: Copyright 2007, John Resig
-	 // http://ejohn.org/blog/numbers-hex-and-colors/
-	////////////////////////////////////////////
-	toNumbers=function(str){
-		 
-   		var ret = [];
-    	str.replace(/(..)/g, function(str){
-     		ret.push( parseInt( str, 16 ) );
-   		});
-  		 return ret;
-	};
 
-	/////////////////////////////////////////
-	// Helper method to make sure a  provided hex color is in the proper hex format without the leading "#"
-	//
-	/////////////////////////////////////////
-	setColor=function(color){
-		color=color.replace(/#/,""); //strip out any leading #	
-		if(color.length==3){
-			// this a color shorthand - need to expand it
-			var r=color.charAt(0)+"";
-			var g=color.charAt(1)+"";
-			var b=color.charAt(2)+"";
-			
-			color=r+r+g+g+b+b;
-		}
-		if(color.length!=6){
-			
-			alert("color string ( "+color+" ) sent to setColor function has incorrect number of digits ( "+color.length+" )");
-		}
-		return color;
+  $.fn.fadeJQ = function( options ) {  
+  	// publicly available options
+    var settings = {
+	'interval':400, // The time in miliseconds between color steps
+	'steps':7,// The number of different shades during fade
+	'useExistingAsEnd':true, // Use the existing background color as the end color if a background color is not provided
+	'startcolor':'ffff99', //default starting color if one is not provided
+	'endcolor':"ffffff", //default ending color if one is not provided and do_FadeuseExistingAsEnd is false;
+	'fadeBGAttribute':"data-fadeJQ_bg",
+	'fadeTimestampAttribute':"data-fadeJQ_timestamps",
+	'debug':false // turn on or off debugging messages
 	};
 	
-
-	/////////////////////////////////////
-	//Helper method that  gets the background of the object
-	//
-	/////////////////////////////////////
-	getBackground=function(){
-		
-		var bg=checkForCSS3(jQuery(element).css('background-color'));	
-		
-		// Check to see if the element itself has a background color
+	if( options ){ $.extend( settings, options ); }
 	
-		// The element itself doesn't have a background color - check each of it's parents
-		if(bg==""){
-			var parents=jQuery(element).parents();
-			parents.each(function(){
-				if(bg==""){
-					bg=checkForCSS3(jQuery(this).css('background-color'));	
-				}
+		var init=function(element){
+			//If using existing color - then get current background before fade
+			var hasAttr=$(element).is("["+settings.fadeBGAttribute+"]");
+			if(settings.useExistingAsEnd==true&&!hasAttr){settings.endcolor=getBackground(element)};
 			
-			});
-		}
-		
-		if(bg=="") return defaultEndColor; // no background color set - use default 
-		
-		else return bg;
-		
-	};
-	
-	/////////////////////////////////////
-	//Helper method that  checks to see if a color exists and is nontransparent.
-	// Returns the color in hex or "" if color doesn't exist.
-	//
-	/////////////////////////////////////
-	checkForCSS3=function(bg){
-		// check to see if rgba is returned
-		
-		
-		if(bg=="transparent")return "";
-		
-		var rgbavals=/rgba\((.+),(.+),(.+),(.+)\)/i.exec(bg);
-		
-		
-		
-		if(rgbavals!=null){
-			//this is using rbga and is not transparent
-			
-			if(parseInt(rgbavals[4])==0) return "";
-			
-			return "#"+(
-				parseInt(rgbavals[1]).toString(16)+
-				parseInt(rgbavals[2]).toString(16)+
-				parseInt(rgbavals[3]).toString(16)
-				).toUpperCase();
-				
-		}
-		
-		else{
-			var rgbvals = /rgb\((.+),(.+),(.+)\)/i.exec(bg);
-			if(rgbvals==null) return bg;
-			
-			return "#"+(
-				parseInt(rgbvals[1]).toString(16)+
-				parseInt(rgbvals[2]).toString(16)+
-				parseInt(rgbvals[3]).toString(16)
-				).toUpperCase();
+			//Set bg attribute if not set, use value if set
+			if(!hasAttr){$(element).attr(settings.fadeBGAttribute,settings.endcolor)}
+			else settings.endcolor=$(element).attr(settings.fadeBGAttribute);
 			
 			
+			// Insure start and end colors are proper format
+			settings.startcolor=setColor(settings.startcolor);
+			settings.endcolor=setColor(settings.endcolor);
+			
+			mainFade({"element":element});
 		}
 		
 		
-	};
-	
-	
-	/////////////////////////////////////
-	//To set final state
-	//
-	/////////////////////////////////////
-	
-	finalState=function(element,endr,endg,endb,timestamp){
-			jQuery(element).css('background-color',"rgb("+endr+","+endg+","+endb+")");
+		//////////// MAIN FADE ////////////
+		var mainFade=function(options){
+	    var s={
+		   	'element':"",
+			"step":0,
+			"timestamp":"",
+			"startr":"",
+			"endr":"",
+			"startg":"",
+			"endg":"",
+			"startb":"",
+			"endb":""
+		    
+		 };
+		if ( options ) { $.extend( s, options ); }
 		
-			// remove this timestamp from data
-			var newAttrVal= jQuery(element).attr(fadeDataAttribute).replace(timestamp+',','');
-			jQuery(element).attr(fadeDataAttribute,newAttrVal);
-		
-		
-	};
-	
-	
-	/////////////////////////////////////
-	//Main method - this does the actual fading of the background.
-	//
-	//Called fadeSteps times through recursion
-	/////////////////////////////////////
-	fadeJQMain=function(paramObj){
-		
-		var element, startcolor, endcolor, step, startr, startg, startb, endr, endg, endb, timestamp;
-		
-		if(paramObj.element!=undefined)element=paramObj.element;
-		if(paramObj.startcolor!=undefined)startcolor=paramObj.startcolor;
-		if(paramObj.endcolor!=undefined)endcolor=paramObj.endcolor;
-		if(paramObj.step!=undefined)step=paramObj.step;
-		if(paramObj.startr!=undefined)startr=paramObj.startr;
-		if(paramObj.startg!=undefined)startg=paramObj.startg;
-		if(paramObj.startb!=undefined)startb=paramObj.startb;
-		if(paramObj.endr!=undefined)endr=paramObj.endr;
-		if(paramObj.endg!=undefined)endg=paramObj.endg;
-		if(paramObj.endb!=undefined)endb=paramObj.endb;
-		if(paramObj.timestamp!=undefined)timestamp=paramObj.timestamp;
+		if(s.element==""){msg('No element sent to mainFade - killing function');return;}
+		var $this=$(s.element);
 		
 		
-		//alert(startcolor+" | "+ endcolor+" | "+ step+" | "+ startr+" | "+ startg+" | "+ startb+" | "+ endr+" | "+ endg+" | "+ endb);
-		
-		if(timestamp==undefined||timestamp==""){
-			// there is no timestamp - set one
-			timestamp=new Date().getTime();
-			var newAttrVal= timestamp+',';
-			if(jQuery(element).attr(fadeDataAttribute)!=undefined) newAttrVal+=jQuery(element).attr(fadeDataAttribute);
-			jQuery(element).attr(fadeDataAttribute,newAttrVal);
+		if(s.timestamp==""){// there is no timestamp - set one
+			s.timestamp=new Date().getTime();
+			var newAttrVal= s.timestamp+',';
+			if($this.is("["+settings.fadeTimestampAttribute+"]")) newAttrVal+=$this.attr(settings.fadeTimestampAttribute);
+			$this.attr(settings.fadeTimestampAttribute,newAttrVal);
 		}
 		
-		
-		
-		var timestampArray=jQuery(element).attr(fadeDataAttribute).split(',');
+		var timestampArray=$this.attr(settings.fadeTimestampAttribute).split(',');
 		timestampArray.pop();
 
 		for(var i=0;i<timestampArray.length;i++){
-			if(timestamp<timestampArray[i]){
-				// There is a newer timestamp - Let's kill this fade:
-				finalState(element,endr,endg,endb,timestamp);
-				return;
-			}
-			
-			
-			if(timestamp>timestampArray[i]){
-				// There is an older timestamp -Just recall this function again
-				 setTimeout(function(){
-					fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor, "timestamp":timestamp});
-					},fadeInterval);
-				return;
-			}
+			if(s.timestamp<timestampArray[i]){return;}// There is a newer timestamp - Let's kill this fade
 		}
 		
 		
 		
 		
 		
-		//No start color provided - use default
-		//Note: the start color is set on the first pass of this method.
-		if(startcolor==undefined)startcolor=defaultStartColor;
-		
-		// No end color provided - find current background color and use as the end color
-		//Note: the end color is set on the first pass of this method.
-		if(endcolor==undefined){
-			if(useExistingAsEnd)endcolor=getBackground();
-			else endcolor=defaultEndColor;
-		}
-		
-		
-		// This is the first pass - ensure that the start and end colors are in the proper hex format
-		if(step==""||step==undefined){
-			step=0;
-			startcolor=setColor(startcolor);
-			endcolor=setColor(endcolor)
-		}
-		
-		
-		
-		//This is the first pass
-		//Need to convert the start and end colors from hex to rgb values
-		//The rgb values are needed to help calculate the next colors
-		//This conversion is only done on the first pass
-		if(startr==undefined){
-			var startnums=toNumbers(startcolor);
-			var endnums=toNumbers(endcolor);
-			startr=startnums[0];
-			startg=startnums[1];
-			startb=startnums[2];
-			endr=endnums[0];
-			endg=endnums[1];
-			endb=endnums[2];
-		}
-		
-		//Calculate the next rgb values assuming this isn't the last step
-		if(step<fadeSteps){
-			var r=Math.round(startr+(endr-startr)/fadeSteps*step);
-			var g=Math.round(startg+(endg-startg)/fadeSteps*step);
-			var b=Math.round(startb+(endb-startb)/fadeSteps*step);
+		var r,g,b;
+		if(s.step==0){
 			
-			jQuery(element).css('background-color',"rgb("+r+","+g+","+b+")");
-			step++;
+			//set start and final states for math calculation below	
+			var startnums=toNumbers(settings.startcolor);
+			s.startr=r=startnums[0];
+			s.startg=g=startnums[1];
+			s.startb=b=startnums[2];
 			
-			
-			//Recall this method in the given time interval
-			setTimeout(function(){
-			//fadeJQMain(element,startcolor,endcolor,step,startr,startg,startb,endr,endg,endb);
-			fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor, "step":step, "startr":startr, "startg":startg, "startb":startb, "endr":endr, "endg":endg, "endb":endb, "timestamp":timestamp});
-			
-			},fadeInterval);
-		
+			var endnums=toNumbers(settings.endcolor);
+			s.endr=endnums[0];
+			s.endg=endnums[1];
+			s.endb=endnums[2];
+				
 		}
-		// This is the last time this method is called - set the background color to the final color
+		else if(s.step==settings.steps){
+			r=s.endr;
+			g=s.endg;
+			b=s.endb;
+		}
 		else{
-			finalState(element,endr,endg,endb,timestamp);
+			// inbetween and need to calculate r,g,b
+			r=Math.round(s.startr+(s.endr-s.startr)/settings.steps*s.step);
+			g=Math.round(s.startg+(s.endg-s.startg)/settings.steps*s.step);
+			b=Math.round(s.startb+(s.endb-s.startb)/settings.steps*s.step);
 		}
-	
+		
+		
+		//Set background
+		$this.css('background-color',"rgb("+r+","+g+","+b+")");
+		
+		
+		if(s.step<settings.steps){
+			s.step++;
+			setTimeout(function(){mainFade(s);},settings.interval);
+		}
+			
+			
+		}// end mainFade
+		
+			/////////////// HELPERS /////////////////
+			 
+	    ///////////TO NUMBERS///////////////////////
+		// Helper method to convert a hex color (example #ffcc00) to an array of rgb values
+		//
+		// JS Hex/Number: Copyright 2007, John Resig
+		 // http://ejohn.org/blog/numbers-hex-and-colors/
+		////////////////////////////////////////////
+		var toNumbers=function(str){
+			 
+			var ret = [];
+			str.replace(/(..)/g, function(str){
+				ret.push( parseInt( str, 16 ) );
+			});
+			 return ret;
+		};
+	    
+	    
+	    /////////////// LOGGING ///////////////
+		var msg=function(msgTxt){
+			if(settings.debug==true){
+				try{console.log(msgTxt);}
+				catch(err){alert(msgTxt);}
+			}
+		}
+		
+	////////////////////////////////////////////////////////	
+		
+		/////////////////////////////////////
+		//Helper method that  gets the background of the object
+		//
+		/////////////////////////////////////
+		var getBackground=function(element){
+			
+			var bg=checkForCSS3($(element).css('background-color'));	
+			if(bg==""){
+				var parents=$(element).parents();
+				parents.each(function(){
+					if(bg==""){bg=checkForCSS3($(this).css('background-color'));}
+				});
+			}
+			
+			if(bg=="") return settings.endcolor; // no background color set - use default end color (usually white)
+			return bg;
+		};
+		
+		
+		
+		/////////////////////////////////////
+		//Helper method that  checks to see if a color exists and is nontransparent.
+		// Returns the color in hex or "" if color doesn't exist.
+		//
+		/////////////////////////////////////
+		var checkForCSS3=function(bg){
+			// check to see if rgba is returned
+			if(bg=="transparent")return "";
+			var rgbavals=/rgba\((.+),(.+),(.+),(.+)\)/i.exec(bg);
+			
+			if(rgbavals!=null){
+				//this is using rbga and is not transparent
+				if(parseInt(rgbavals[4])==0) return "";
+				return "#"+(
+					parseInt(rgbavals[1]).toString(16)+
+					parseInt(rgbavals[2]).toString(16)+
+					parseInt(rgbavals[3]).toString(16)
+					).toUpperCase();
+			}
+			
+			else{
+				var rgbvals = /rgb\((.+),(.+),(.+)\)/i.exec(bg);
+				if(rgbvals==null) return bg;
+				return "#"+(
+					parseInt(rgbvals[1]).toString(16)+
+					parseInt(rgbvals[2]).toString(16)+
+					parseInt(rgbvals[3]).toString(16)
+					).toUpperCase();
+			}
+		};
+		
+		/////////////////////////////////////////
+		// Helper method to make sure a  provided hex color is in the proper hex format without the leading "#"
+		//
+		/////////////////////////////////////////
+		setColor=function(color){
+			color=color.replace(/#/,""); //strip out any leading #	
+			if(color.length==3){
+				// this a color shorthand - need to expand it
+				var r=color.charAt(0)+"";
+				var g=color.charAt(1)+"";
+				var b=color.charAt(2)+"";
+				
+				color=r+r+g+g+b+b;
+			}
+			if(color.length!=6){
+				
+				msg("color string ( "+color+" ) sent to setColor function has incorrect number of digits ( "+color.length+" )");
+			}
+			return color;
 	};
 		
 	
-	fadeJQMain({"element":element, "startcolor":startcolor, "endcolor":endcolor});
-	
-    return this; //return the DOM object so this plug-in can be daisy chained.
-};
+    return this.each(function() {
+		init($(this));
+						
+	}); 
+    
+   
+  }// end fadeJQ
+    
 
+})( jQuery );
